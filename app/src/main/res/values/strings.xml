@@ -9,6 +9,8 @@
     <string name="hint_login_password">请输入密码</string>
     <string name="hint_login_password2">请确认密码</string>
 
-    <string name="challenge_count">挑战 <![CDATA[<font color="#FF4081">%1$s</font>]]>次</string>
-    <string name="against_count">迎战 <![CDATA[<font color="#FF4081">%1$s</font>]]>次</string>
+    <string name="challenge_count">挑战 <![CDATA[<font color="#FF4081">%1$s</font>]]> 次</string>
+    <string name="against_count">迎战 <![CDATA[<font color="#FF4081">%1$s</font>]]> 次</string>
+
+    <string name="net_error">网络请求失败了！</string>
 </resources>

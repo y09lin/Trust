@@ -1,14 +1,22 @@
 package com.huim_lin.trust.activity
 
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.View
+import cn.jpush.android.api.JPushInterface
+import cn.jpush.android.api.TagAliasCallback
 import com.huim_lin.trust.R
+import com.huim_lin.trust.bean.User
+import com.huim_lin.trust.net.RequestUtils
+import com.huim_lin.trust.utils.ToastUtils
 import kotlinx.android.synthetic.main.act_login.*
 
 class LoginAct : AppCompatActivity() {
     private var isLogin=true
+    private var user:User?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,9 +62,48 @@ class LoginAct : AppCompatActivity() {
         }
     }
 
-    private fun onLogin(name:String,pass:String){}
+    private fun onLogin(name:String,pass:String){
+        RequestUtils.onLogin(this,name,pass,object: RequestUtils.OnLoginListener {
+            override fun onError(msg: String) {
+                ToastUtils.show(this@LoginAct,msg)
+            }
 
-    private fun onRegister(name:String,pass: String){}
+            override fun onSuccess(user: User) {
+                Log.d("LoginResult",user.id+" "+user.name)
+                this@LoginAct.user=user
+                JPushInterface.setAlias(this@LoginAct,user.name,object: TagAliasCallback {
+                    override fun gotResult(p0: Int, p1: String?, p2: MutableSet<String>?) {
+                        Log.d("LoginResult","setAlias:"+p1)
+                    }
+                })
+                loginSuccess()
+            }
+        })
+    }
 
-    private fun loginSuccess(){}
+    private fun onRegister(name:String,pass: String){
+        RequestUtils.onRegister(this,name,pass,object: RequestUtils.OnLoginListener {
+            override fun onError(msg: String) {
+                ToastUtils.show(this@LoginAct,msg)
+            }
+
+            override fun onSuccess(user: User) {
+                Log.d("LoginResult",user.id+" "+user.name)
+                this@LoginAct.user=user
+                JPushInterface.setAlias(this@LoginAct,user.name,object: TagAliasCallback {
+                    override fun gotResult(p0: Int, p1: String?, p2: MutableSet<String>?) {
+                        Log.d("LoginResult","setAlias:"+p1)
+                    }
+                })
+                loginSuccess()
+            }
+        })
+    }
+
+    private fun loginSuccess(){
+        ToastUtils.show(this,"loginSuccess")
+        val intent=Intent(this,HomeAct::class.java)
+        intent.putExtra(HomeAct.ERX_USER,user)
+        startActivity(intent)
+    }
 }
