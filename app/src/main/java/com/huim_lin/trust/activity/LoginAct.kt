@@ -1,6 +1,6 @@
 package com.huim_lin.trust.activity
 
-import android.content.Intent
+import android.app.ProgressDialog
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
@@ -11,12 +11,15 @@ import cn.jpush.android.api.TagAliasCallback
 import com.huim_lin.trust.R
 import com.huim_lin.trust.bean.User
 import com.huim_lin.trust.net.RequestUtils
-import com.huim_lin.trust.utils.ToastUtils
 import kotlinx.android.synthetic.main.act_login.*
+import org.jetbrains.anko.*
 
-class LoginAct : AppCompatActivity() {
+class LoginAct : AppCompatActivity(),AnkoLogger {
     private var isLogin=true
     private var user:User?=null
+    private var dialog:ProgressDialog?=null
+
+    private val log= AnkoLogger("Test")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,12 +66,21 @@ class LoginAct : AppCompatActivity() {
     }
 
     private fun onLogin(name:String,pass:String){
+        if (dialog==null){
+            dialog=indeterminateProgressDialog(message = getString(R.string.login_progress))
+        }else{
+            dialog!!.show()
+        }
         RequestUtils.onLogin(this,name,pass,object: RequestUtils.OnLoginListener {
             override fun onError(msg: String) {
-                ToastUtils.show(this@LoginAct,msg)
+                toast(msg)
+                dialog!!.dismiss()
+                log.debug("RequestUtils")
+                debug("RequestUtils")
             }
 
             override fun onSuccess(user: User) {
+                dialog!!.dismiss()
                 Log.d("LoginResult",user.id+" "+user.name)
                 this@LoginAct.user=user
                 JPushInterface.setAlias(this@LoginAct,user.name,object: TagAliasCallback {
@@ -84,7 +96,7 @@ class LoginAct : AppCompatActivity() {
     private fun onRegister(name:String,pass: String){
         RequestUtils.onRegister(this,name,pass,object: RequestUtils.OnLoginListener {
             override fun onError(msg: String) {
-                ToastUtils.show(this@LoginAct,msg)
+                toast(msg)
             }
 
             override fun onSuccess(user: User) {
@@ -101,9 +113,13 @@ class LoginAct : AppCompatActivity() {
     }
 
     private fun loginSuccess(){
-        ToastUtils.show(this,"loginSuccess")
-        val intent=Intent(this,HomeAct::class.java)
-        intent.putExtra(HomeAct.ERX_USER,user)
-        startActivity(intent)
+        alert("Login Success", "Login") {
+            yesButton {
+                startActivity<HomeAct>(Pair(HomeAct.ERX_USER,user!!))
+                finish()
+            }
+            noButton {}
+        }.show()
+
     }
 }

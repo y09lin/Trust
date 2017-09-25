@@ -14,7 +14,7 @@ import java.io.IOException
  */
 object RequestUtils {
 
-    val baseUrl="http://10.20.195.25:8080/"
+    private val baseUrl="http://10.20.195.51:8080"
 
     interface OnLoginListener{
         fun onError(msg:String)
@@ -22,26 +22,22 @@ object RequestUtils {
     }
 
     fun onLogin(activity: Activity,name:String,pass:String,listener:OnLoginListener){
-        val url= baseUrl+"/user/login"
-        val httpClien=OkHttpClient()
+        val url= "/user/login"
         val requestBody=FormBody.Builder()
                 .add("name",name)
                 .add("password",pass)
                 .build()
-        val request=Request.Builder().url(url).post(requestBody).build()
-        httpClien.newCall(request).enqueue(object: Callback {
-            override fun onFailure(call: Call?, e: IOException?) {
-                activity.runOnUiThread{
+        commonInvoke(url, requestBody, object: RequestListener {
+            override fun onError(e: IOException) {
+                activity.runOnUiThread {
                     listener.onError(activity.getString(R.string.net_error))
                 }
             }
 
-            override fun onResponse(call: Call?, response: Response) {
-                val str=response.body()!!.string()
-                val gson= Gson()
+            override fun onResponse(response: String) {
                 activity.runOnUiThread {
-                    Log.d("LoginResult",str)
-                    val result=gson.fromJson(str,LoginResult::class.java)
+                    val gson= Gson()
+                    val result=gson.fromJson(response,LoginResult::class.java)
                     if (result.code == "s_0"){
                         listener.onSuccess(result.result!![0])
                     }else{
@@ -50,29 +46,26 @@ object RequestUtils {
                 }
             }
         })
+
     }
 
     fun onRegister(activity: Activity,name:String,pass:String,listener:OnLoginListener){
-        val url= baseUrl+"/user/register"
-        val httpClien=OkHttpClient()
+        val url= "/user/register"
         val requestBody=FormBody.Builder()
                 .add("name",name)
                 .add("password",pass)
                 .build()
-        val request=Request.Builder().url(url).post(requestBody).build()
-        httpClien.newCall(request).enqueue(object: Callback {
-            override fun onFailure(call: Call?, e: IOException?) {
-                activity.runOnUiThread{
+        commonInvoke(url, requestBody, object: RequestListener {
+            override fun onError(e: IOException) {
+                activity.runOnUiThread {
                     listener.onError(activity.getString(R.string.net_error))
                 }
             }
 
-            override fun onResponse(call: Call?, response: Response) {
-                val str=response.body()!!.string()
-                val gson= Gson()
+            override fun onResponse(response: String) {
                 activity.runOnUiThread {
-                    Log.d("LoginResult",str)
-                    val result=gson.fromJson(str,LoginResult::class.java)
+                    val gson= Gson()
+                    val result=gson.fromJson(response,LoginResult::class.java)
                     if (result.code == "s_0"){
                         listener.onSuccess(result.result!![0])
                     }else{
@@ -89,25 +82,21 @@ object RequestUtils {
     }
 
     fun onGetUserList(activity: Activity, name:String, listener: OnGetUserListListener){
-        val url= baseUrl+"/user/getAllUser"
-        val httpClien=OkHttpClient()
+        val url= "/user/getAllUser"
         val requestBody=FormBody.Builder()
                 .add("name",name)
                 .build()
-        val request=Request.Builder().url(url).post(requestBody).build()
-        httpClien.newCall(request).enqueue(object: Callback {
-            override fun onFailure(call: Call?, e: IOException?) {
-                activity.runOnUiThread{
+        commonInvoke(url, requestBody, object: RequestListener {
+            override fun onError(e: IOException) {
+                activity.runOnUiThread {
                     listener.onError(activity.getString(R.string.net_error))
                 }
             }
 
-            override fun onResponse(call: Call?, response: Response) {
-                val str=response.body()!!.string()
-                val gson= Gson()
+            override fun onResponse(response: String) {
                 activity.runOnUiThread {
-                    Log.d("GetUser",str)
-                    val result=gson.fromJson(str,LoginResult::class.java)
+                    val gson= Gson()
+                    val result=gson.fromJson(response,LoginResult::class.java)
                     if (result.code == "s_0"){
                         listener.onSuccess(result.result!!)
                     }else{
@@ -116,5 +105,27 @@ object RequestUtils {
                 }
             }
         })
+    }
+
+    private fun commonInvoke(url: String, requestBody: RequestBody, listener: RequestListener){
+        val requestUrl= baseUrl+url
+        val httpClien=OkHttpClient()
+        val request=Request.Builder().url(requestUrl).post(requestBody).build()
+        Log.d("Request","url="+requestUrl)
+        httpClien.newCall(request).enqueue(object: Callback {
+            override fun onFailure(call: Call?, e: IOException?) {
+                listener.onError(e!!)
+            }
+
+            override fun onResponse(call: Call?, response: Response) {
+                listener.onResponse(response.body()!!.string())
+            }
+        })
+
+    }
+
+    interface RequestListener{
+        fun onError(e: IOException)
+        fun onResponse(response: String)
     }
 }

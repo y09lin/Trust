@@ -7,8 +7,8 @@ import com.huim_lin.trust.R
 import com.huim_lin.trust.adapter.UserAdapter
 import com.huim_lin.trust.bean.User
 import com.huim_lin.trust.net.RequestUtils
-import com.huim_lin.trust.utils.ToastUtils
 import kotlinx.android.synthetic.main.act_home.*
+import org.jetbrains.anko.toast
 
 class HomeAct : AppCompatActivity() {
     companion object {
@@ -40,7 +40,7 @@ class HomeAct : AppCompatActivity() {
     private fun getData(){
         RequestUtils.onGetUserList(this, user!!.name!!,object: RequestUtils.OnGetUserListListener {
             override fun onError(msg: String) {
-                ToastUtils.show(this@HomeAct,msg)
+                toast(msg)
             }
 
             override fun onSuccess(list: List<User>) {
